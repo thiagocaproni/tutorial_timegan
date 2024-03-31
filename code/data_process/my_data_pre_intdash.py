@@ -97,7 +97,7 @@ class DataPre:
                 if ( (j < lim_inf) or (j > lim_sup) ):
                     self.processed_data = self.processed_data.drop(k) 
                     
-    def removeAtributoscomMesmoValor(self):
+    def removeSameValueAttributes(self):
         self.processed_data = self.processed_data.drop(columns=self.processed_data.columns[self.processed_data.nunique()==1], inplace=False)
 
     def clusterData(self, number_clusters):

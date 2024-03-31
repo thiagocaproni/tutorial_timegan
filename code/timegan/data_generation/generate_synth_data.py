@@ -119,14 +119,15 @@ scaler64 = MinMaxScaler().fit(real_64)
 models = {}
 
 size = 3600
-data = np.zeros(2*27*len(num_cols)).reshape(2,27,len(num_cols))
+#data = np.zeros(2*27*len(num_cols)).reshape(2,27,len(num_cols))
+data = np.zeros(2*3*len(num_cols)).reshape(2,3,len(num_cols))
 
 try:
   # Specify an invalid GPU device
   with tf.device('/device:GPU:0'):
-    for i in range(0,3):
-        for j in range(0,3):
-            for k in range(0,3):
+    for i in range(0,1):
+        for j in range(0,1):
+            for k in range(0,1):
                 seq_len=(50*(i)+50) 
                 synth_32_norm, synth_64_norm = loadSynthData(model32= str('../models_dash_int/so32_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'), 
                                                 model64= str('../models_dash_int/so64_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'), 
@@ -157,13 +158,13 @@ try:
 
     directory_path = '../saved_objects/'
     
-    with open(directory_path + 'real9_50_3600_norm_27.pkl', 'wb') as file:
+    with open(directory_path + 'real3_50_3600_norm_27.pkl', 'wb') as file:
         pickle.dump([real_32, real_64], file)
     
-    with open(directory_path + 'models9_50_3600_norm_27.pkl', 'wb') as file:
+    with open(directory_path + 'models3_50_3600_norm_27.pkl', 'wb') as file:
         pickle.dump(models, file) 
         
-    with open(directory_path + 'metrics9_50_3600_norm_27.pkl', 'wb') as file:
+    with open(directory_path + 'metrics3_50_3600_norm_27.pkl', 'wb') as file:
         pickle.dump(data, file)
 
 except RuntimeError as e:

@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[7]:
-
-
 from os import path
 import pandas as pd
 import numpy as np
@@ -17,9 +11,6 @@ import tensorflow as tf
 import sys
 sys.path.insert(0, '../../data_process')
 from my_data_pre_intdash import DataPre
-
-
-# In[8]:
 
 
 def loadDp(random):
@@ -41,10 +32,6 @@ def loadDp(random):
     
     return dp
 
-
-# In[9]:
-
-
 def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, clas, model):        
     log_step = 100
     learning_rate = 5e-4
@@ -58,26 +45,13 @@ def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, clas, mode
     processed_data = real_data_loading(dp.processed_data.values, seq_len=seq_len)
     
     synth = TimeGAN(model_parameters=gan_args, hidden_dim=hidden_dim, seq_len=seq_len, n_seq=n_seq, gamma=1)
-    synth.train(processed_data, train_steps=3000)
+    synth.train(processed_data, train_steps=500)
     synth.save(model)
-
-
-# In[10]:
-
 
 dp = loadDp(random=False)
 dp.processed_data
-
-
-# In[11]:
-
-
 dp.removeOutliers()
 dp.processed_data
-
-
-# In[14]:
-
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 #tf.debugging.set_log_device_placement(True)
@@ -86,8 +60,8 @@ try:
   # Specify an invalid GPU device
   with tf.device('/device:GPU:1'):
     for i in range(0,1):
-      for j in range(0,3):
-        for k in range(0,3):
+      for j in range(0,1):
+        for k in range(0,1):
           train(dp,
             seq_len=(50*(i)+50), 
             n_seq=17, 
