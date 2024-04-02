@@ -38,8 +38,10 @@ class DataPre:
         merged32_df = pd.merge(df32_int, df32_dash, left_index=True, right_index=True).reset_index()
         merged64_df = pd.merge(df64_int, df64_dash, left_index=True, right_index=True).reset_index()
         
+        # Creating a q_size column to differentiate lines related to 32-bit and 64-bit buffer sizes
         merged64_df['q_size'] = 1
         merged32_df['q_size'] = 0
+        
         
         self.dataset = pd.concat([merged32_df, merged64_df], ignore_index=True)
 
@@ -76,7 +78,7 @@ class DataPre:
             cat_cols = [0,1,2]
         
         self.processed_data = self.dataset[ sorted_cols + cat_cols ].copy()
-        self.num_cols = list(self.processed_data.columns[self.processed_data.columns != cond_col])
+        self.num_cols = list(self.processed_data.columns[self.processed_data.columns != "q_size"])
         self.cat_cols = cat_cols
         self.num_cols = sorted_cols
 
