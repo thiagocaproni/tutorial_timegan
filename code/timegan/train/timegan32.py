@@ -3,15 +3,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 from ydata_synthetic.synthesizers import ModelParameters
 from ydata_synthetic.synthesizers.timeseries import TimeGAN
 from ydata_synthetic.preprocessing.timeseries.utils import real_data_loading
 import tensorflow as tf
-
 import sys
-sys.path.insert(0, '../../data_process')
-from preprocess_data import DataPre
 
+sys.path.insert(0, '../../data_process')
+sys.path.insert(1, '../')
+from preprocess_data import DataPre
+import params
 
 def loadDp(random, outliers):
     dp = DataPre()
@@ -52,7 +54,6 @@ def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model, tra
     #normalizing the data
     processed_data = real_data_loading(dp.processed_data.values, seq_len=seq_len)
     
-    
     synth = TimeGAN(model_parameters=gan_args, hidden_dim=hidden_dim, seq_len=seq_len, n_seq=n_seq, gamma=1)
     
     synth.train(processed_data, train_steps=train_steps)
@@ -81,8 +82,7 @@ dp = loadDp(random=False, outliers=False)
 # within the nested triple-loop structure. The `fatNum` function will be employed to compute these maximum values. 
 # For instance, if the total number of models created equals 3, then the upper limits for `i`, `j`, and `k` would be 
 # respectively set to 1, 1, and 3.
-amount_of_models = 3
-iMax, jMax, kMax = fatNum(amount_of_models)
+iMax, jMax, kMax = fatNum(params.amount_of_models) # Change the file params.py 
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
@@ -107,6 +107,6 @@ try:
             dim=128, 
             batch_size=(28*(k) + 100), 
             model=str('../saved_models/so32_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'),
-            train_steps=500)
+            train_steps=params.train_steps)
 except RuntimeError as e:
   print(e)

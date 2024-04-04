@@ -1,4 +1,5 @@
 from os import path
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,9 @@ import tensorflow as tf
 
 import sys
 sys.path.insert(0, '../../data_process')
+sys.path.insert(1, '../')
 from preprocess_data import DataPre
+import params
 
 def loadDp(random, outliers):
     dp = DataPre()
@@ -40,7 +43,7 @@ def loadDp(random, outliers):
     
     return dp
 
-def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model):        
+def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model, train_steps):        
     learning_rate = 5e-4
 
     gan_args = ModelParameters(batch_size=batch_size,
@@ -54,7 +57,7 @@ def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model):
     
     synth = TimeGAN(model_parameters=gan_args, hidden_dim=hidden_dim, seq_len=seq_len, n_seq=n_seq, gamma=1)
     
-    synth.train(processed_data, train_steps=500)
+    synth.train(processed_data, train_steps=train_steps)
     synth.save(model)
 
 def fatNum(N):
@@ -81,11 +84,9 @@ dp = loadDp(random=False, outliers=False)
 # within the nested triple-loop structure. The `fatNum` function will be employed to compute these maximum values. 
 # For instance, if the total number of models created equals 3, then the upper limits for `i`, `j`, and `k` would be 
 # respectively set to 1, 1, and 3.
-amount_of_models = 3
-iMax, jMax, kMax = fatNum(amount_of_models)
+iMax, jMax, kMax = fatNum(params.amount_of_models) # Change the file params.py 
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-
 
 # In this part of the code we actually execute the training of the models by varying the following hyperparameters:
 # seq_len: the sequence length would be the size of the temporal window of each sequence used to train the model, 
@@ -107,6 +108,6 @@ try:
             dim=128, 
             batch_size=(28*(k) + 100), 
             model=str('../saved_models/so64_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'),
-            train_steps=500)
+            train_steps=params.train_steps)
 except RuntimeError as e:
   print(e)

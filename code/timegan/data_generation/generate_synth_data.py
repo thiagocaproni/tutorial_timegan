@@ -6,10 +6,14 @@ import tensorflow as tf
 import sys
 import pickle
 sys.path.insert(0, '../../data_process/')
+sys.path.insert(1, '../')
 from preprocess_data import DataPre
+import params
 
 dataset_directory = '../../../datasets/'
 
+# Function to generate synthetic data based on models created in
+# training scripts
 def loadSynthData(model32, model64, seq_len):
     synth_32 = TimeGAN.load(model32)
     synth_data_32 = synth_32.sample(seq_len)
@@ -17,11 +21,11 @@ def loadSynthData(model32, model64, seq_len):
     synth_64 = TimeGAN.load(model64)
     synth_data_64 = synth_64.sample(seq_len)
     
-    synth_data_32[:,:,14:18][synth_data_32[:,:,14:17] >= 0.5] = 1
-    synth_data_32[:,:,14:18][synth_data_32[:,:,14:17] < 0.5] = 0
+    synth_data_32[:,:,13:17][synth_data_32[:,:,13:17] >= 0.5] = 1
+    synth_data_32[:,:,13:17][synth_data_32[:,:,13:17] < 0.5] = 0
     
-    synth_data_64[:,:,14:18][synth_data_64[:,:,14:17] >= 0.5] = 1
-    synth_data_64[:,:,14:18][synth_data_64[:,:,14:17] < 0.5] = 0
+    synth_data_64[:,:,13:17][synth_data_64[:,:,13:17] >= 0.5] = 1
+    synth_data_64[:,:,13:17][synth_data_64[:,:,13:17] < 0.5] = 0
         
     return synth_data_32, synth_data_64
 
@@ -117,12 +121,9 @@ def fatNum(N):
 
 ####################### GENERATION #######################
 
-
 # Amount of line which will be considered to generate the statistics
-sample_size = 2400
-
-amount_of_models = 3
-iMax, jMax, kMax = fatNum(amount_of_models)
+# in both datasets: real and synthetic
+iMax, jMax, kMax = fatNum(params.amount_of_models)
 
 num_cols = ['enq_qdepth1','deq_timedelta1', 'deq_qdepth1',
             ' enq_qdepth2', ' deq_timedelta2', ' deq_qdepth2',
@@ -147,53 +148,71 @@ scaler64 = MinMaxScaler().fit(real_64)
 
 models = {}
 
-synth_size = 3600
-data = np.zeros(2*amount_of_models*len(num_cols)).reshape(2,amount_of_models,len(num_cols))
+
+data = np.zeros(2*params.amount_of_models*len(num_cols)).reshape(2,params.amount_of_models,len(num_cols))
 
 try:
   # Specify an invalid GPU device
   with tf.device('/device:GPU:0'):
     for i in range(0,iMax):
         for j in range(0,jMax):
-            for k in range(0,kMax+1):
+            for k in range(0,kMax):
                 seq_len=(50*(i)+50) 
                 
+                """
+                The object returned when generating synthetic data is a three-dimensional object ([i][j][k]), 
+                where the variable i controls the number of windows generated and defined by the variable seq_len 
+                (explained in the training script). In turn, the variable j controls the index of the lines in 
+                each window and the variable k controls the columns. In other words, a number of time windows are 
+                returned. Therefore, you need to define in the loadSynthData function the number of windows you 
+                want to generate.
+                """
                 synth_32_norm, synth_64_norm = loadSynthData(model32= str('../saved_models/so32_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'), 
                                                 model64= str('../saved_models/so64_seqlen_'+ str((50*(i) + 50)) + '_hidim_' + str(20*(j)+20) + '_batch_' +  str(28*(k) + 100) + '.pkl'), 
-                                                seq_len=int(size/seq_len))                                              
+                                                seq_len=int(params.synth_sample_size/seq_len))                                              
                 
+                # Normalizing the real data
                 real_32_norm =  real_data_loading(real_32, seq_len=seq_len)
                 real_64_norm =  real_data_loading(real_64, seq_len=seq_len)
                 
                 
-                real_32_norm = createDataSet(int(synth_size/seq_len),seq_len, real_32_norm)
-                real_64_norm = createDataSet(int(synth_size/seq_len),seq_len, real_64_norm)
+                # The createDataSet function transforms three-dimensional synthetic data objects by serializing the 
+                # windows into a two-dimensional dataset with only rows and columns.
+                real_32_norm = createDataSet(int(params.synth_sample_size/seq_len),seq_len, real_32_norm)
+                real_64_norm = createDataSet(int(params.synth_sample_size/seq_len),seq_len, real_64_norm)
+                synth_32_norm = createDataSet(int(params.synth_sample_size/seq_len),seq_len, synth_32_norm)
+                synth_64_norm = createDataSet(int(params.synth_sample_size/seq_len),seq_len, synth_64_norm)
                 
-                synth_32_norm = createDataSet(int(synth_size/seq_len),seq_len, synth_32_norm)
-                synth_64_norm = createDataSet(int(synth_size/seq_len),seq_len, synth_64_norm)
                 
+                # Inverting the normalization to the original scale in order to generate a data set on the same scale 
+                # as that collected in the real environment.
                 data_synth_32 = scaler32.inverse_transform(synth_32_norm)
                 data_synth_64 = scaler64.inverse_transform(synth_64_norm)
                 
-                roundFeatures(data_synth_32)
-                roundFeatures(data_synth_64)
-                    
+                # roundFeatures(data_synth_32)
+                # roundFeatures(data_synth_64)
+                
+                
+                
                 models['so_seqlen_'+str((50*(i) + 50))+'_hidim_'+str(20*(j)+20)+'_batch_'+str(28*(k)+100)+'.pkl'] = [data_synth_32, 
-                                                                                                                    data_synth_64]            
-                metrics = genStatisctics(real_32_norm, synth_32_norm, real_64_norm, synth_64_norm, sample_size, num_cols)
+                                                                                                                    data_synth_64]    
+                        
+                metrics = genStatisctics(real_32_norm, synth_32_norm, real_64_norm, synth_64_norm, params.statistic_sample_size, num_cols)
 
                 print(metrics)
-                get_allfeatures_metrics(num_cols, data, (i*9) + (j*3) + (k) , metrics)
+                # Saving the metrics of each feature in object data, creating a general
+                # object summarizing the statistics of all models.
+                get_allfeatures_metrics(num_cols, data, (i*iMax) + (j*jMax) + (k) , metrics)
 
     directory_path = '../saved_objects/'
-    
-    with open(directory_path + 'real3_50_3600_norm.pkl', 'wb') as file:
+                                
+    with open(directory_path + params.realdata_obj, 'wb') as file:
         pickle.dump([real_32, real_64], file)
     
-    with open(directory_path + 'models3_50_3600_norm.pkl', 'wb') as file:
+    with open(directory_path + params.models_obj, 'wb') as file:
         pickle.dump(models, file) 
         
-    with open(directory_path + 'metrics3_50_3600_norm.pkl', 'wb') as file:
+    with open(directory_path + params.metrics_obj, 'wb') as file:
         pickle.dump(data, file)
 
 except RuntimeError as e:
