@@ -81,6 +81,7 @@ def createDataSet(lines, seq_len, data):
             
     return dataset
 
+# Call this function if you want to round the dataset values
 def roundFeatures(dataset):
     for i in range(0, len(dataset)):
         dataset[i] = np.round(dataset[i])
@@ -184,19 +185,21 @@ try:
                 synth_64_norm = createDataSet(int(params.synth_sample_size/seq_len),seq_len, synth_64_norm)
                 
                 
-                # Inverting the normalization to the original scale in order to generate a data set on the same scale 
-                # as that collected in the real environment.
+                # Reverting the normalization to the original scale is performed to produce a dataset that aligns 
+                # with the scale of data collected in the actual environment
                 data_synth_32 = scaler32.inverse_transform(synth_32_norm)
                 data_synth_64 = scaler64.inverse_transform(synth_64_norm)
-                
-                # roundFeatures(data_synth_32)
-                # roundFeatures(data_synth_64)
-                
-                
-                
+                       
                 models['so_seqlen_'+str((50*(i) + 50))+'_hidim_'+str(20*(j)+20)+'_batch_'+str(28*(k)+100)+'.pkl'] = [data_synth_32, 
                                                                                                                     data_synth_64]    
-                        
+                '''
+                The function for generating metrics employs Equation X, which is derived from the discrepancy in 
+                the interquartile ranges between each feature of the real and synthetic data. Additionally, the 
+                variance in the medians of these features is incorporated into this computation. Consequently, 
+                an object named 'metrics' is instantiated, encapsulating the results of this equation across all 
+                models and their corresponding features. Subsequently, in the evaluation script, these metrics 
+                are utilized to determine the optimal model.
+                '''        
                 metrics = genStatisctics(real_32_norm, synth_32_norm, real_64_norm, synth_64_norm, params.statistic_sample_size, num_cols)
 
                 print(metrics)

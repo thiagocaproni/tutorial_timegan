@@ -15,7 +15,18 @@ sys.path.insert(1, '../')
 from preprocess_data import DataPre
 import params
 
+
 def loadDp(random, outliers):
+    """
+      Load the datasets and merge the INT and DASH data
+
+      Args:
+          random (boolean): True to randomize the dataset
+          outliers (boolean): False to remove the outliers
+          
+      Returns:
+          dp: Dataset with INT and DASH data loaded
+    """
     dp = DataPre()
     
     #Loading and mergint INT and DASH datasets
@@ -43,7 +54,33 @@ def loadDp(random, outliers):
     
     return dp
 
-def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model, train_steps):        
+def train(dp, seq_len, n_seq, hidden_dim, noise_dim, dim, batch_size, model, train_steps):
+    """
+      Function that trains TimeGAN
+
+      Args:
+          dp 
+          seq_len: the sequence length would be the size of the temporal window of each sequence used to train the model, 
+                   that is, how many time steps (lines) each sequence contains. 
+          n_seq: amount of columns in the dataset 
+          hidden_dim: Number of units or neurons in each hidden layer
+          noise_dim: refers to the size or dimensionality of the random noise input that is fed into the generator network. 
+                     TimeGAN is designed to generate realistic time-series data, and the noise vector serves as a source of 
+                     randomness that helps the generator create diverse and plausible time-series samples.
+          dim: 
+          batch_size 
+          model
+          train_steps
+          
+          seq_len: the sequence length would be the size of the temporal window of each sequence used to train the model, 
+#          that is, how many time steps (lines) each sequence contains.
+# hidden_dim: Number of units or neurons in each hidden layer
+# batch_size: The batch size determines how many temporal sequences (or how many data examples/lines) are included in a single batch for training.
+# train_steps: Refers to the total number of training iterations
+          
+      Returns:
+          There are no return objects since models are saved in the saved folder
+    """        
     learning_rate = 5e-4
 
     gan_args = ModelParameters(batch_size=batch_size,

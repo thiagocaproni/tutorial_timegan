@@ -52,7 +52,6 @@ class DataPre:
         
         #self.dataset.drop('LOG', axis=1, inplace=True)
         #self.dataset.drop('Resolution', axis=1, inplace=True) 
-        
         for i in sorted_cols:
             self.dataset[i].fillna(self.dataset[i].mean(), inplace=True)
         
