@@ -10,22 +10,56 @@ class DataPre:
     
     
     def transformTimeStamp(self, df):
+        """
+        Transforms the timestamp column in the DataFrame from milliseconds to seconds
+        and sets it as the index of the DataFrame.
+
+        Parameters:
+            df (pd.DataFrame): The DataFrame containing a 'timestamp' column with time values in milliseconds.
+
+        Modifies:
+            df (pd.DataFrame): The input DataFrame is modified in-place with the 'timestamp' column 
+                            converted to seconds and set as the index.
+
+        Returns:
+            None
+        """
         df['timestamp'] = df['timestamp'] / 1000
         df['timestamp'] = df['timestamp'].astype(int)
         df.set_index('timestamp', inplace=True)
             
     def loadDataSet(self, path_int, path_dash):
+        """
+        Loads and merges datasets from specified file paths. The 'INT' dataset is merged with
+        the 'DASH' dataset based on timestamp indices after preprocessing.
+
+        Args:
+            path_int (string): Path to the INT dataset file, expected to be a CSV with a comma separator.
+            path_dash (string): Path to the DASH dataset file, expected to be a CSV with a semicolon separator.
+
+        Modifies:
+            self.dataset: The class attribute 'dataset' is set to the merged DataFrame.
+
+        Detailed Steps:
+            1. Reads the INT and DASH datasets from their respective paths.
+            2. Transforms the timestamp in the DASH dataset from milliseconds to seconds.
+            3. Filters the INT dataset to retain rows with the maximum 'deq_timedelta1' value per timestamp.
+            4. Sets 'timestamp' as the index for both datasets.
+            5. Merges the two datasets on their timestamp indices and resets the index of the merged DataFrame.
+        """
         
+        # Load the INT and DASH datasets from specified paths
         df_int = pd.read_csv(path_int, sep = ',')
         df_dash = pd.read_csv(path_dash, sep = ';')
         
+        # from milliseconds to seconds
         self.transformTimeStamp(df_dash)
         df_int = df_int.loc[df_int.groupby('timestamp')['deq_timedelta1'].idxmax()]
 
-        #df32_int = df32_int.drop_duplicates(subset=['timestamp'])
-        #df64_int = df64_int.drop_duplicates(subset=['timestamp'])
+         # Set 'timestamp' as the index for the INT dataset
+        df_int.set_index('timestamp', inplace=True)  
         
-        df_int.set_index('timestamp', inplace=True)     
+        # Merge the INT and DASH datasets on their timestamp indices and reset the merged DataFrame's index   
         self.dataset = pd.merge(df_int, df_dash, left_index=True, right_index=True).reset_index()
 
 
@@ -48,28 +82,60 @@ class DataPre:
          for i in self.dataset.columns:
             print(i)
         
-    def preProcessData(self, sorted_cols, cat_cols, random): 
-        
-        #self.dataset.drop('LOG', axis=1, inplace=True)
-        #self.dataset.drop('Resolution', axis=1, inplace=True) 
-        for i in sorted_cols:
+    def preProcessData(self, num_cols, cat_cols, random): 
+        """
+        Preprocesses the dataset by filling missing values, encoding categorical variables,
+        and optionally shuffling the data.
+
+        Parameters:
+            num_cols (list): A list of column names representing numerical variables
+                            in the dataset where missing values will be replaced with the column mean.
+            cat_cols (list): A list of column names representing categorical variables
+                            to be one-hot encoded.
+            random (bool): A flag that determines if the dataset rows should be randomly shuffled.
+
+        Modifies:
+            self.processed_data (pd.DataFrame): A copy of the dataset with preprocessing applied
+                                                on numerical and categorical columns specified.
+            self.cat_cols (list): Updated list of categorical columns after encoding.
+            self.num_cols (list): List of numerical columns used in preprocessing.
+
+        Returns:
+            None
+        """
+        # Fill missing values in numerical columns with their mean
+        for i in num_cols:
             self.dataset[i].fillna(self.dataset[i].mean(), inplace=True)
         
+        # Perform one-hot encoding if there are categorical columns
         if len(cat_cols) > 0:
             self.hotEncode()
             cat_cols = [0,1,2]
         
-        self.processed_data = self.dataset[ sorted_cols + cat_cols ].copy()
+        # Create a copy of the dataset with only the processed columns
+        self.processed_data = self.dataset[ num_cols + cat_cols ].copy()
         self.cat_cols = cat_cols
-        self.num_cols = sorted_cols
+        self.num_cols = num_cols
 
+         # Randomly shuffle the dataset if requested
         if random == True:
             idx = np.random.permutation(self.processed_data.index)
             self.processed_data = self.processed_data.reindex(idx)
         
         
     def removeOutliers(self):
-        #for i in self.processed_data.columns:
+        """
+        Removes outliers from the numerical columns of the dataset.
+
+        This method iterates through each numerical column specified in self.num_cols.
+        For each column, it calculates the first and third quartiles, and subsequently the 
+        Interquartile Range (IQR). It defines outliers as those values that fall below 
+        Q1 - 1.5*IQR or above Q3 + 1.5*IQR. Rows containing outliers in any of the specified 
+        columns are dropped from the dataset.
+
+        Modifies:
+            self.processed_data (pd.DataFrame): The dataset with outliers removed.
+        """
         for i in self.num_cols:
             q1 = self.processed_data[i].quantile(.25)
             q3 = self.processed_data[i].quantile(.75)
@@ -81,6 +147,17 @@ class DataPre:
                     self.processed_data = self.processed_data.drop(k) 
                     
     def removeSameValueAttributes(self):
+        """
+        Removes columns from the processed_data attribute that contain the same value in all rows.
+
+        This method identifies and drops any columns within the processed_data DataFrame 
+        where all rows have the same value, indicating no variability in the dataset for 
+        those attributes. Such columns are not useful for most analytical and machine learning 
+        tasks as they do not provide any distinguishing information.
+
+        Modifies:
+            self.processed_data (pd.DataFrame): The dataset with constant-value columns removed.
+        """
         self.processed_data = self.processed_data.drop(columns=self.processed_data.columns[self.processed_data.nunique()==1], inplace=False)
 
     def clusterData(self, number_clusters):
