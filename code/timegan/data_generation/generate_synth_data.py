@@ -190,7 +190,7 @@ def get_allfeatures_metrics(metrics, model_index, statistic_data):
     are utilized to determine the optimal model. It should be emphasized that the total of the metrics for all 
     features of a given model, denoted by the variable M in the equation, is calculated in the 
     analyze_data_models.ipynb script in the method getFeaturesBestMetricsOfModels. This method 
-    identifies the best and worst models from the trained models."
+    identifies the best and worst models from the trained models.
     
     Args:
         statistic_data (list): list containing statistical data for each feature (column) of the model 
