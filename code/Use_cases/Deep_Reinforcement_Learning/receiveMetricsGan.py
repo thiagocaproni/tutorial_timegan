@@ -77,7 +77,6 @@ def sendtoRl(sample):
 
     # Take the chosen action and observe the next state, reward, and done flag
     current_state, next_state, reward, done, _ = env.take_action(action, current_state, dash_state)
-    print(reward)
 
     # If next state is available, memorize the transition and perform experience replay
     if next_state is not None:
@@ -170,7 +169,7 @@ def readFile32():
     for sample32 in pd.read_csv('gan/best_modelsum_32.csv', chunksize=4):
         # Select only the specified columns
         sample32 = sample32[cols]
-        # Process the data using the 'jointoRL' function with TYPE_64
+        # Process the data using the 'jointoRL' function with TYPE_32
         jointoRL(sample32, TYPE_32)
 
 
