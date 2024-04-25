@@ -1,4 +1,3 @@
-import tail 
 import threading
 import pandas as pd
 import numpy as np
