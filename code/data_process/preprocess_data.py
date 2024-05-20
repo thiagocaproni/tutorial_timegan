@@ -67,7 +67,7 @@ class DataPre:
         #creating instance of one-hot-encoder
         self.encoder = OneHotEncoder(handle_unknown='ignore')
 
-        #perform one-hot encoding on 'team' column 
+        #perform one-hot encoding on 'Resolution' column 
         encoder_df = pd.DataFrame(self.encoder.fit_transform(self.dataset[['Resolution']]).toarray())
 
         #merge one-hot encoded columns back with original DataFrame

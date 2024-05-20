@@ -15,7 +15,7 @@ structure used in the scripts. The `fatNum` function will be used to calculate t
 if the total number of models created equals 3, then the upper bounds for `i`, `j` and `k` are respectively set 
 to 1, 1 and 3. If the number of models is 9, the Maximum values of i`, `j` and `k` are respectively defined as 1, 3 and 3
 '''
-amount_of_models = 27
+amount_of_models = 3
 
 # train_steps: Refers to the total number of training iterations
 train_steps = 100

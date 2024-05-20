@@ -26,7 +26,7 @@ def loadSynthData(model32, model64, number_of_windows):
     Args:
         model32 (string): Name of the TimeGAN model trained on 32-bit buffer size data
         model64 (string): Name of the TimeGAN model trained on 64-bit buffer size data
-        seq_len (int):  the number of windows you want to generate. Remember that each 
+        number_of_windows (int):  the number of windows you want to generate. Remember that each 
                         window has the size defined in the seq_len variable of each model.
     
     Returns:
@@ -39,11 +39,11 @@ def loadSynthData(model32, model64, number_of_windows):
     synth_64 = TimeGAN.load(model64)
     synth_data_64 = synth_64.sample(number_of_windows)
     
-    synth_data_32[:,:,13:17][synth_data_32[:,:,13:17] >= 0.5] = 1
-    synth_data_32[:,:,13:17][synth_data_32[:,:,13:17] < 0.5] = 0
-    synth_data_64[:,:,13:17][synth_data_64[:,:,13:17] >= 0.5] = 1
-    synth_data_64[:,:,13:17][synth_data_64[:,:,13:17] < 0.5] = 0
-        
+    synth_data_32[:,:,13:16][synth_data_32[:,:,13:16] >= 0.5] = 1
+    synth_data_32[:,:,13:16][synth_data_32[:,:,13:16] < 0.5] = 0
+    synth_data_64[:,:,13:16][synth_data_64[:,:,13:16] >= 0.5] = 1
+    synth_data_64[:,:,13:16][synth_data_64[:,:,13:16] < 0.5] = 0
+    
     return synth_data_32, synth_data_64
 
 def loadRealData(dsint32, dsint64, dsdash32, dsdash64, num_cols, cat_cols, sample_size, randon, outliers):
@@ -204,7 +204,6 @@ def get_allfeatures_metrics(metrics, model_index, statistic_data):
         metrics[0][model_index][j], metrics[1][model_index][j] = getMetrics(statistic_data.get(col))
         
         
-
 ####################### GENERATION #######################
 
 iMax, jMax, kMax = ModelUtility.fatNum(params.amount_of_models)
@@ -244,7 +243,7 @@ within each model.
 metrics = np.zeros(2*params.amount_of_models * len(params.num_cols)).reshape(2, params.amount_of_models, len(params.num_cols))
 
 try:
-  # Specify an invalid GPU device
+  # Specify an valid GPU device
   with tf.device('/device:GPU:0'):
     for i in range(0,iMax):
         for j in range(0,jMax):
