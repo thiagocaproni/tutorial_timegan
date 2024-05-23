@@ -62,4 +62,5 @@ code/timegan/saved_objects/metrics3_50_3600_norm.pkl
 code/timegan/saved_objects/models3_50_3600_norm.pkl
 code/timegan/saved_objects/metrics3_50_3600_norm.pkl
 code/timegan/saved_objects/models3_50_3600_norm.pkl
+code/timegan/evaluation/analyze_data_models_copy.ipynb
 results/
