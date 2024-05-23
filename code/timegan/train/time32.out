@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/home/thiago/sbrc_2024/tutorial_timegan/code/timegan/train/timegan32.py", line 7, in <module>
-    from ydata_synthetic.synthesizers import ModelParameters
-ModuleNotFoundError: No module named 'ydata_synthetic'
